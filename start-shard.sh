@@ -186,7 +186,7 @@ echo "Using artifacts in $ARTIFACTDIR"
 (exists "$ARTIFACTDIR"/zookeeper* && echo "  ZooKeeper exists") || {
     echo "Downloading current ZooKeeper artifact"
     pushd "$ARTIFACTDIR" > /dev/null
-    wget -nd -q http://ops.reportgrid.com.s3.amazonaws.com/zookeeper/zookeeper-3.4.3.tar.gz || {
+    wget -nd -q http://apache.mirrors.lucidnetworks.net/zookeeper/zookeeper-3.4.5/zookeeper-3.4.5.tar.gz || {
         echo "Failed to download zookeeper" >&2
         exit 3
     }
@@ -207,7 +207,7 @@ echo "Using artifacts in $ARTIFACTDIR"
     echo "Downloading current Mongo artifact"
     pushd "$ARTIFACTDIR" > /dev/null
     wget -nd -q $MONGOURL || {
-        echo "Failed to download kafka" >&2
+        echo "Failed to download MongoDB" >&2
         exit 3
     }
     popd > /dev/null
@@ -367,6 +367,7 @@ sed -e "s#log.dir=.*#log.dir=$KFGLOBALDATA#; s/port=.*/port=$KAFKA_GLOBAL_PORT/;
 $KFBASE/bin/kafka-server-start.sh $KFBASE/config/server-global.properties &> $WORKDIR/logs/kafka-global.stdout &
 KFGLOBALPID=$!
 
+echo "Waiting for Kafka Global on $KAFKA_GLOBAL_PORT"
 wait_until_port_open $KAFKA_GLOBAL_PORT
 
 KAFKA_LOCAL_PORT=$(random_port "Kafka local")
@@ -374,6 +375,7 @@ sed -e "s#log.dir=.*#log.dir=$KFLOCALDATA#; s/port=.*/port=$KAFKA_LOCAL_PORT/; s
 $KFBASE/bin/kafka-server-start.sh $KFBASE/config/server-local.properties &> $WORKDIR/logs/kafka-local.stdout &
 KFLOCALPID=$!
 
+echo "Waiting for Kafka Local on $KAFKA_LOCAL_PORT"
 wait_until_port_open $KAFKA_LOCAL_PORT
 
 echo "Kafka Global = $KFGLOBALPID"
@@ -387,6 +389,7 @@ tar --strip-components=1 -xvzf "$ARTIFACTDIR"/mongo* &> /dev/null
 $MONGOBASE/bin/mongod --port $MONGO_PORT --dbpath $MONGODATA --nojournal --nounixsocket --noauth --noprealloc &> $WORKDIR/logs/mongo.stdout &
 MONGOPID=$!
 
+echo "Waiting for MongoDB on $MONGO_PORT"
 wait_until_port_open $MONGO_PORT
 
 if [ ! -e "$WORKDIR"/root_token.txt ]; then
